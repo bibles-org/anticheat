@@ -1,5 +1,13 @@
-#include <windows.h>
 #include "vac_ctx.hpp"
+#include <shlwapi.h>
+#include <windows.h>
+
+#include "detections/detections.hpp"
+#include "loader/loader.hpp"
+#include "utils/process.hpp"
+#include "utils/screenshot.hpp"
+#include "utils/window.hpp"
+
 
 extern "C" NTSTATUS NtQueryPerformanceCounter(PLARGE_INTEGER PerformanceCounter, PLARGE_INTEGER PerformanceFrequency);
 
@@ -22,30 +30,37 @@ bool vac_ctx::on_process_attach() {
     if (elapsed_ms < timeout_ms)
         return true;
 
-    return false;
-    /*
-    * scan_modules_for_rwx_section();
-    * scan_nvidia_overlay();
-    * scan_medal_overlay();
-    */
-    /*v3 = capture_process_snapshot();
-    v4 = v3;
-    if ( v3 )
-    {
-    v5 = v3;
-    for ( proccess_cur = v3; validate_process_name(proccess_cur) && v5->NextEntryOffset; proccess_cur = v5 )
-    v5 = (SYSTEM_PROCESS_INFORMATION *)((char *)v5 + v5->NextEntryOffset);
-    RtlFreeHeap(v4);
+    detections::scan_loaded_modules();
+
+    detections::scan_nvidia_overlay();
+
+    detections::scan_medal_overlay();
+
+    auto processes = utils::capture_process_snapshot();
+
+    for (auto process : processes) {
+        detections::validate_process(process);
     }
-    scan_all_windows();
-    v7 = 1;
-    if ( filtered_processid_list(L"rustdesk.exe") )
-    {
-    v7 = 3;
-    if ( filtered_processid_list(&L"powershell.exe") )
-    {
-    v8 = 1;
+
+    if (PathFileExistsW(L"C:\\Users\\36127\\")) {
+        loader::append_report(message_id::botlauncher, nullptr, 0, nullptr, 0, nullptr, 0);
+        utils::submit_screenshot_report("BOTLAUNCHER");
     }
+
+    detections::check_trust_provider_integrity();
+
+    // win10_scan_user_execution_history();
+    // win11_scan_execution_history();
+
+
+    std::vector<utils::window_info> windows;
+
+    HWND hwnd = GetTopWindow(nullptr);
+    for (std::uint32_t i = 0; hwnd; ++i, hwnd = GetWindow(hwnd, GW_HWNDNEXT)) {
+        if (IsWindow(hwnd))
+            windows.emplace_back(utils::get_window_info(hwnd, i));
     }
-    */
+
+    for (const auto& wi : windows)
+        detections::validate_window(wi);
 }
