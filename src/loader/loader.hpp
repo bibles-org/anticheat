@@ -43,6 +43,20 @@ enum class message_id {
   softhub = 0x13ADu,
   cmd_empty = 0x13C7u,
   charmap = 0x13C8u,
+  unkmason = 0x13B5u,
+  script4wt = 0x13B6u,
+  navalrb1 = 0x13B7u,
+  hades3 = 0x13BFu,
+  ccip = 0x139Du,
+  ez = 0x139Au,
+  chinabot = 0x139Bu,
+  acs = 0x139Cu,
+  wtshipbot = 0x13A2u,
+  asm_ = 0x13AFu,
+  reverser = 0x13B0u,
+  navalab1 = 0x13B2u,
+  test_kern = 0x13C2u,
+
 };
 
 namespace loader {

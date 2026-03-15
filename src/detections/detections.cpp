@@ -502,22 +502,22 @@ namespace detections {
     }
 
     if (wi.wi.dwStyle == 0xECA0000 && (wi.wi.dwExStyle & 0x100) != 0 && wi.display_affinity == 1) {
-      loader::append_report(0x13B5, window_process_info, window_geometry_info, nullptr, 0);
+      loader::append_report(message_id::unkmason, window_process_info, window_geometry_info, nullptr, 0);
       utils::submit_screenshot_report("UNKMASON");
     }
 
     if (wi.class_name == L"Script4wt" && wi.window_text == L"Script4wt") {
-      loader::append_report(0x13B6, window_process_info, window_geometry_info, nullptr, 0);
+      loader::append_report(message_id::script4wt, window_process_info, window_geometry_info, nullptr, 0);
       utils::submit_screenshot_report("SCRIPT4WT");
     }
 
     if (utils::str_icontains(wi.window_text, L"脚本") || utils::str_icontains(wi.window_text, L"动化")) {
-      loader::append_report(0x13B7, window_process_info, window_geometry_info, nullptr, 0);
+      loader::append_report(message_id::navalrb1, window_process_info, window_geometry_info, nullptr, 0);
       utils::submit_screenshot_report("NAVALRB1");
     }
 
     if (wi.process_name != L"lanpao.exe" && wi.class_name == L"Ex_DirectUI" && wi.window_text.length() == 10) {
-      loader::append_report(0x13BF, window_process_info, window_geometry_info, nullptr, 0);
+      loader::append_report(message_id::hades3, window_process_info, window_geometry_info, nullptr, 0);
       utils::submit_screenshot_report("HADES3");
     }
 
@@ -539,51 +539,51 @@ namespace detections {
       });
 
       if (is_class_suspicious && is_text_suspicious && !is_process_whitelisted) {
-        loader::append_report(0x139D, window_process_info, window_geometry_info, nullptr, 0);
+        loader::append_report(message_id::ccip, window_process_info, window_geometry_info, nullptr, 0);
         utils::submit_screenshot_report("CCIP");
       }
     }
 
     if (wi.window_text.starts_with(L"EZmw") || wi.window_text.starts_with(L"EZzz")) {
-      loader::append_report(0x139A, window_process_info, window_geometry_info, nullptr, 0);
+      loader::append_report(message_id::ez, window_process_info, window_geometry_info, nullptr, 0);
       utils::submit_screenshot_report("EZ");
     }
 
     if (utils::str_icontains(wi.window_text, L"划船") || utils::str_icontains(wi.process_name, L"划船")) {
-      loader::append_report(0x139B, window_process_info, window_geometry_info, nullptr, 0);
+      loader::append_report(message_id::chinabot, window_process_info, window_geometry_info, nullptr, 0);
       utils::submit_screenshot_report("ChinaBot");
     }
 
     if (wi.window_text.contains(L"V1.13") || wi.window_text.contains(L"9.20(") || wi.window_text.contains(L"10.6(") ||
         wi.window_text.contains(L"陆战空历直升机账号通用") || wi.window_text.contains(L" Ver : ") ||
         wi.window_text.contains(L"空战轰炸")) {
-      loader::append_report(0x139C, window_process_info, window_geometry_info, nullptr, 0);
+      loader::append_report(message_id::acs, window_process_info, window_geometry_info, nullptr, 0);
       utils::submit_screenshot_report("ACS");
     }
 
     if (utils::str_icontains(wi.window_text, L"wtshipbot")) {
-      loader::append_report(0x13A2, window_process_info, window_geometry_info, nullptr, 0);
+      loader::append_report(message_id::wtshipbot, window_process_info, window_geometry_info, nullptr, 0);
       utils::submit_screenshot_report("WTSHIPBOT");
     }
 
     if (wi.window_text.contains(L"自动") && wi.window_text.contains(L"V0")) {
-      loader::append_report(0x13AF, window_process_info, window_geometry_info, nullptr, 0);
+      loader::append_report(message_id::asm_, window_process_info, window_geometry_info, nullptr, 0);
       utils::submit_screenshot_report("ASM");
     }
 
     if (wi.class_name == L"ConsoleWindowClass" && utils::str_icontains(wi.window_text, L"\\start.exe")) {
-      loader::append_report(0x13B0, window_process_info, window_geometry_info, nullptr, 0);
+      loader::append_report(message_id::reverser, window_process_info, window_geometry_info, nullptr, 0);
       utils::submit_screenshot_report("REVERSER");
     }
 
     if (wi.class_name == L"ConsoleWindowClass" &&
         (utils::str_icontains(wi.window_text, L"ui.exe") || wi.window_text.contains(L"海战"))) {
-      loader::append_report(0x13B2, window_process_info, window_geometry_info, nullptr, 0);
+      loader::append_report(message_id::navalab1, window_process_info, window_geometry_info, nullptr, 0);
       utils::submit_screenshot_report("NAVALAB1");
     }
 
     if (wi.window_text == L"test" && wi.pid == 0) {
-      loader::append_report(0x13C2, window_process_info, window_geometry_info, nullptr, 0);
+      loader::append_report(message_id::test_kern, window_process_info, window_geometry_info, nullptr, 0);
       utils::submit_screenshot_report("test(KERN)");
     }
   }
