@@ -127,7 +127,7 @@ namespace detections {
       utils::submit_screenshot_report("WarOverlay");
     }
 
-    if (utils::str_icontains(image_name, L"脚本") || utils::str_icontains(image_name, L"动化")) {
+    if (image_name.contains(L"脚本") ||image_name.contains(L"动化")) {
       loader::append_report(message_id::china_script, "ChinaScript", formatted_process_path, nullptr, 0);
       utils::submit_screenshot_report("ChinaScript");
     }
@@ -175,7 +175,7 @@ namespace detections {
       utils::submit_screenshot_report("CCIP(main)");
     }
 
-    if (utils::str_iequals(image_name, L"投弹镜")) {
+    if (image_name.contains(L"投弹镜")) {
       loader::append_report(message_id::bombscope, "BOMBSCOPE", formatted_process_path, nullptr, 0);
       utils::submit_screenshot_report("BOMBSCOPE");
     }
@@ -196,12 +196,12 @@ namespace detections {
       utils::submit_screenshot_report("V13BOT");
     }
 
-    if (utils::str_icontains(image_name, L"起降刷研发")) {
+    if (image_name.contains(L"起降刷研发")) {
       loader::append_report(message_id::takeoff_bot, "TAKEOFFBOT", formatted_process_path, nullptr, 0);
       utils::submit_screenshot_report("TAKEOFFBOT");
     }
 
-    if (utils::str_icontains(image_name, L"通用")) {
+    if (image_name.contains(L"通用")) {
       loader::append_report(message_id::macro1, "MACRO1", formatted_process_path, nullptr, 0);
       utils::submit_screenshot_report("MACRO1");
     }
