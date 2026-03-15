@@ -17,6 +17,7 @@ add_executable(anticheat
   src/utils/string.cpp
 
   src/detections/detections.cpp
+  src/detections/present_hook.cpp
 )
 
 if(WIN32)

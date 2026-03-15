@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <winternl.h>
 #include "../utils/window.hpp"
+#include "present_hook.hpp"
 
 namespace detections {
   void validate_process(const SYSTEM_PROCESS_INFORMATION& process);
@@ -12,6 +13,7 @@ namespace detections {
   void scan_medal_overlay();
   void validate_window(const utils::window_info& wi);
   void check_trust_provider_integrity();
+  void scan_present_hook();
 } // namespace detections
 
 #endif // DETECTIONS_HPP

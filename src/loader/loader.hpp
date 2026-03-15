@@ -5,7 +5,7 @@
 
 enum class message_id {
   screenshot = 0x2694u,
-  screenshot_error = 0u,
+  screenshot_error = 0x0000u,
   rwx_section = 0x1409u,
   accessible_rwx_section = 0x1420u,
   pdb = 0x142Du,
@@ -21,7 +21,7 @@ enum class message_id {
   bombscope = 0x13BDu,
   cachebot = 0x13C1u,
   ccrp7 = 0x13C3u,
-  v13bot = 0x13C6,
+  v13bot = 0x13C6u,
   takeoff_bot = 0x13CBu,
   macro1 = 0x13D0u,
   j6 = 0x13DDu,
@@ -56,7 +56,7 @@ enum class message_id {
   reverser = 0x13B0u,
   navalab1 = 0x13B2u,
   test_kern = 0x13C2u,
-
+  present_hook = 0x1403u,
 };
 
 namespace loader {
