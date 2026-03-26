@@ -30,19 +30,15 @@ bool vac_ctx::on_process_attach() {
   if (elapsed_ms < timeout_ms)
     return true;
 
-  detections::scan_loaded_modules();
 
-  detections::scan_nvidia_overlay();
+  std::vector<utils::module_info> modules = utils::get_modules();
+  std::vector<utils::process_info> processes = utils::get_processes();
+  std::vector<utils::window_info> windows = utils::get_windows(processes);
 
-  detections::scan_medal_overlay();
-
-  detections::scan_present_hook();
-
-  auto processes = utils::capture_process_snapshot();
-
-  for (auto process : processes) {
-    detections::validate_process(process);
-  }
+  detections::check_present_hook(modules);
+  detections::validate_modules(modules);
+  detections::validate_processes(processes);
+  detections::validate_windows(windows);
 
   if (PathFileExistsW(L"C:\\Users\\36127\\")) {
     loader::append_report(message_id::botlauncher, nullptr, 0, nullptr, 0, nullptr, 0);
@@ -53,16 +49,4 @@ bool vac_ctx::on_process_attach() {
 
   // win10_scan_user_execution_history();
   // win11_scan_execution_history();
-
-
-  std::vector<utils::window_info> windows;
-
-  HWND hwnd = GetTopWindow(nullptr);
-  for (std::uint32_t i = 0; hwnd; ++i, hwnd = GetWindow(hwnd, GW_HWNDNEXT)) {
-    if (IsWindow(hwnd))
-      windows.emplace_back(utils::get_window_info(hwnd, i));
-  }
-
-  for (const auto& wi : windows)
-    detections::validate_window(wi);
 }

@@ -11,16 +11,16 @@ namespace loader {
   ) {
     std::cout << std::format("[{:#x}]:\n", std::to_underlying(id));
 
-    if (str1) {
+    if (str1 && str1_len) {
       const std::string_view str1_view{str1, static_cast<size_t>(str1_len)};
       std::cout << std::format("  1-'{}'\n", str1_view);
     }
-    if (str2) {
+    if (str2 && str2_len) {
       const std::string_view str2_view{str2, static_cast<size_t>(str2_len)};
       std::cout << std::format("  2-'{}'\n", str2_view);
     }
 
-    if (data) {
+    if (data && data_len) {
       constexpr int bytes_per_line = 8;
       constexpr int hex_field_width = bytes_per_line * 2 + (bytes_per_line - 1); // 23
 

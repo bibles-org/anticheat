@@ -1,19 +1,16 @@
 #ifndef DETECTIONS_HPP
 #define DETECTIONS_HPP
 
-#include <cstdint>
-#include <winternl.h>
+#include <vector>
+#include "../utils/module.hpp"
 #include "../utils/window.hpp"
-#include "present_hook.hpp"
 
 namespace detections {
-  void validate_process(const SYSTEM_PROCESS_INFORMATION& process);
-  void scan_loaded_modules();
-  void scan_nvidia_overlay();
-  void scan_medal_overlay();
-  void validate_window(const utils::window_info& wi);
+  void validate_processes(const std::vector<utils::process_info>& processes);
+  void validate_windows(const std::vector<utils::window_info>& windows);
+  void validate_modules(const std::vector<utils::module_info>& modules);
+  void check_present_hook(const std::vector<utils::module_info>& modules);
   void check_trust_provider_integrity();
-  void scan_present_hook();
 } // namespace detections
 
 #endif // DETECTIONS_HPP

@@ -10,75 +10,72 @@
 #include <winternl.h>
 
 namespace utils {
-  window_info get_window_info(HWND hwnd, std::uint32_t index) {
-    window_info wi{};
-    wi.window_handle = hwnd;
-    wi.index = index;
+  window_info::window_info(HWND hwnd, const std::vector<process_info>& processes) :
+      process(), window_handle(hwnd), pid(0), tid(0), display_affinity(0), wi() {
+    tid = GetWindowThreadProcessId(hwnd, &pid);
 
-    wi.tid = GetWindowThreadProcessId(hwnd, &wi.pid);
-
-    wi.process_name = L"EMPTY";
-    if (wi.pid) {
-      wi.image_path = utils::wide_to_utf8(utils::get_process_image_path(wi.pid));
-      auto snapshot = utils::capture_process_snapshot();
-      const auto it = std::ranges::find_if(snapshot, [&](const SYSTEM_PROCESS_INFORMATION& p) {
-        return p.UniqueProcessId == reinterpret_cast<HANDLE>(wi.pid);
-      });
-
-      if (it != snapshot.end() && it->ImageName.Buffer) {
-        wi.process_name = std::wstring(it->ImageName.Buffer, it->ImageName.Length / sizeof(wchar_t));
-      }
+    if (pid) {
+      if (const auto it = std::ranges::find_if(
+                  processes,
+                  [&](const process_info& p) {
+                    return p.pid == pid;
+                  }
+          );
+          it != processes.end())
+        process = *it;
     }
 
-    wchar_t temp_buf[512]{};
-    wi.window_text = L"EMPTY";
-    if (InternalGetWindowText(hwnd, temp_buf, std::size(temp_buf)))
-      wi.window_text = temp_buf;
+    std::array<wchar_t, 1024> buf{};
+    if (InternalGetWindowText(hwnd, buf.data(), buf.size()))
+      window_text = std::wstring(buf.data(), buf.size());
 
-    std::memset(temp_buf, 0, sizeof(temp_buf));
-    wi.class_name = L"EMPTY";
-    if (GetClassNameW(hwnd, temp_buf, std::size(temp_buf)))
-      wi.class_name = temp_buf;
+    std::memset(buf.data(), 0, sizeof(buf));
+    if (GetClassNameW(hwnd, buf.data(), buf.size()))
+      class_name = std::wstring(buf.data(), buf.size());
 
-    wi.wi.cbSize = sizeof(WINDOWINFO);
-    GetWindowInfo(hwnd, &wi.wi);
+    wi.cbSize = sizeof(WINDOWINFO);
+    GetWindowInfo(hwnd, &wi);
 
-    wi.display_affinity = 0;
-    GetWindowDisplayAffinity(hwnd, &wi.display_affinity);
+    client_width = wi.rcClient.right - wi.rcClient.left;
+    client_height = wi.rcClient.bottom - wi.rcClient.top;
+    win_width = wi.rcWindow.right - wi.rcWindow.left;
+    win_height = wi.rcWindow.bottom - wi.rcWindow.top;
 
-    wi.client_left = wi.wi.rcClient.left;
-    wi.client_top = wi.wi.rcClient.top;
-    wi.client_width = wi.wi.rcClient.right - wi.wi.rcClient.left;
-    wi.client_height = wi.wi.rcClient.bottom - wi.wi.rcClient.top;
-
-    wi.win_left = wi.wi.rcWindow.left;
-    wi.win_top = wi.wi.rcWindow.top;
-    wi.win_width = wi.wi.rcWindow.right - wi.wi.rcWindow.left;
-    wi.win_height = wi.wi.rcWindow.bottom - wi.wi.rcWindow.top;
-
-    return wi;
+    GetWindowDisplayAffinity(hwnd, &display_affinity);
   }
 
-  std::string format_window_geometry_info(const window_info& wi) {
+  std::string format_window_geometry_info(const window_info& window) {
     std::string result = std::format(
-            "class={} text={} rcWindow=[{},{},{},{}] rcClient=[{},{},{},{}] style=0x{:X} exstyle=0x{:X}", utils::wide_to_utf8(wi.class_name),
-            utils::wide_to_utf8(wi.window_text), wi.wi.rcWindow.left, wi.wi.rcWindow.top, wi.wi.rcWindow.right - wi.wi.rcWindow.left,
-            wi.wi.rcWindow.bottom - wi.wi.rcWindow.top, wi.wi.rcClient.left, wi.wi.rcClient.top,
-            wi.wi.rcClient.right - wi.wi.rcClient.left, wi.wi.rcClient.bottom - wi.wi.rcClient.top, wi.wi.dwStyle,
-            wi.wi.dwExStyle
+            "class={} text={} rcWindow=[{},{},{},{}] rcClient=[{},{},{},{}] style=0x{:X} exstyle=0x{:X}",
+            wide_to_utf8(window.class_name), utils::wide_to_utf8(window.window_text), window.wi.rcWindow.left,
+            window.wi.rcWindow.top, window.wi.rcWindow.right - window.wi.rcWindow.left,
+            window.wi.rcWindow.bottom - window.wi.rcWindow.top, window.wi.rcClient.left, window.wi.rcClient.top,
+            window.wi.rcClient.right - window.wi.rcClient.left, window.wi.rcClient.bottom - window.wi.rcClient.top,
+            window.wi.dwStyle, window.wi.dwExStyle
     );
 
-    if (wi.display_affinity)
-      result += std::format(" affinity={}", wi.display_affinity);
+    if (window.display_affinity)
+      result += std::format(" affinity={}", window.display_affinity);
 
     return result;
   }
 
-  std::string format_window_process_info(const window_info& wi) {
-    std::string result = std::format("index={} pid={} path='{}'", wi.index, wi.pid, wi.image_path);
+  std::string format_window_process_info(const window_info& window) {
+    std::string result = std::format("index=0 pid={} path='{}'", window.pid, window.process.path);
 
-    if (wi.display_affinity)
-      result += std::format(" affinity={}", wi.display_affinity);
+    if (window.display_affinity)
+      result += std::format(" affinity={}", window.display_affinity);
+
+    return result;
+  }
+
+  std::vector<window_info> get_windows(const std::vector<process_info>& processes) {
+    std::vector<window_info> result;
+
+    for (HWND hwnd = GetTopWindow(nullptr);; hwnd = GetWindow(hwnd, GW_HWNDNEXT)) {
+      if (IsWindow(hwnd))
+        result.emplace_back(hwnd, processes);
+    }
 
     return result;
   }

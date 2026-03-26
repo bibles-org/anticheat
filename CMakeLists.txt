@@ -15,12 +15,16 @@ add_executable(anticheat
   src/utils/window.cpp
   src/utils/registry.cpp
   src/utils/string.cpp
+  src/utils/module.cpp
 
   src/detections/detections.cpp
   src/detections/present_hook.cpp
+  src/detections/process_validation.cpp
+  src/detections/window_validation.cpp
+  src/detections/module_validation.cpp
 )
 
-if(WIN32)
+#if(WIN32)
   target_link_libraries(anticheat PRIVATE
     d3d11
     dxgi
@@ -38,4 +42,4 @@ if(WIN32)
   else()
     target_link_options(anticheat PRIVATE --static -static-libstdc++)
   endif()
-endif()
+#endif()
