@@ -1,5 +1,7 @@
 #include "registry.hpp"
 
+extern "C" NTSTATUS RtlGetVersion(void* lpVersionInformation);
+
 namespace utils {
   std::wstring read_registry_string(HKEY hkey, std::wstring_view value_name) {
     DWORD size = 0;
@@ -75,5 +77,20 @@ namespace utils {
     }
 
     return true;
+  }
+
+  bool is_win11_or_greater() {
+    OSVERSIONINFO version_info{.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW)};
+    RtlGetVersion(&version_info);
+
+    if (version_info.dwMajorVersion > 10) {
+      return true;
+    }
+
+    if (version_info.dwMajorVersion < 10) {
+      return false;
+    }
+
+    return version_info.dwBuildNumber >= 22000;
   }
 } // namespace utils

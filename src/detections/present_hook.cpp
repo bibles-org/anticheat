@@ -8,6 +8,7 @@
 #include <windows.h>
 
 #include "../loader/loader.hpp"
+#include "../utils/registry.hpp"
 #include "../utils/screenshot.hpp"
 
 namespace {
@@ -42,10 +43,9 @@ namespace {
     const auto* fn_rvas = reinterpret_cast<const DWORD*>(module.base + exp->AddressOfFunctions);
     const auto* ordinals = reinterpret_cast<const WORD*>(module.base + exp->AddressOfNameOrdinals);
 
-    constexpr std::size_t k_window = 512;
-    constexpr std::size_t k_len = sizeof(call_pattern);
-
     for (DWORD i = 0; i < exp->NumberOfNames; ++i) {
+      constexpr std::size_t k_window = 512;
+      constexpr std::size_t k_len = sizeof(call_pattern);
       const DWORD rva = fn_rvas[ordinals[i]];
       if (!rva)
         continue;
@@ -123,23 +123,11 @@ namespace {
     }
     return chain;
   }
-
-  bool is_win10_build() {
-    using fn_t = NTSTATUS(WINAPI*)(PRTL_OSVERSIONINFOW);
-    const auto rtl_get_version =
-            reinterpret_cast<fn_t>(GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetVersion"));
-    if (!rtl_get_version)
-      return false;
-    RTL_OSVERSIONINFOW vi{.dwOSVersionInfoSize = sizeof(vi)};
-    if (rtl_get_version(&vi) < 0)
-      return false;
-    return vi.dwMajorVersion == 10 && vi.dwBuildNumber >= 0x55F0u;
-  }
 } // namespace
 
 namespace detections {
   void check_present_hook(const std::vector<utils::module_info>& modules) {
-    if (!is_win10_build())
+    if (!utils::is_win11_or_greater())
       return;
 
     const auto dxgi_it = std::ranges::find_if(modules, [](const auto& module) -> bool {

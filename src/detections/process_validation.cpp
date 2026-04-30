@@ -42,11 +42,6 @@ namespace detections {
         utils::submit_screenshot_report("ChinaScript");
       }
 
-      /*
-       * if (process.name_w.data() == L"test.exe")
-       *   - Gaijin 2026
-       */
-
       if (utils::str_iequals(process.name_w, L"test.exe")) {
         if (FindWindowW(nullptr, L"test")) {
           loader::append_report(message_id::test_window, "test", formatted_process_path, nullptr, 0);
@@ -63,11 +58,6 @@ namespace detections {
         loader::append_report(message_id::air_bot, "FarmBot", formatted_process_path, nullptr, 0);
         utils::submit_screenshot_report("FarmBot");
       }
-
-      /*
-       * if (process.name_w.data() == L"main.exe")
-       *   - Gaijin 2026
-       */
 
       if (utils::str_icontains(process.path_w, L"boosteroid") || utils::str_iequals(process.name_w, L"main.exe")) {
         constexpr std::wstring_view chinese_fellas[]{L"HongHai", L"Webzen", L"bwupdate", L"Xrelay"};

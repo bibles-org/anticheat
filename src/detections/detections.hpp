@@ -10,7 +10,10 @@ namespace detections {
   void validate_windows(const std::vector<utils::window_info>& windows);
   void validate_modules(const std::vector<utils::module_info>& modules);
   void check_present_hook(const std::vector<utils::module_info>& modules);
-  void check_trust_provider_integrity();
+  void check_sip_hijack_and_appinit_injection();
+
+  //void scan_shimcache_execution_history();
+  //void scan_compat_assistant_execution_history();
 } // namespace detections
 
 #endif // DETECTIONS_HPP

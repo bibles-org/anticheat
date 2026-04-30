@@ -13,7 +13,7 @@
 
 
 namespace detections {
-  void check_trust_provider_integrity() {
+  void check_sip_hijack_and_appinit_injection() {
     HKEY sip_handle = nullptr;
     if (RegOpenKeyExW(
                 HKEY_LOCAL_MACHINE,

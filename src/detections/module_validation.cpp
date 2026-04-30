@@ -40,24 +40,24 @@ namespace {
     if (nt->Signature != IMAGE_NT_SIGNATURE)
       return false;
 
-    const auto& [VirtualAddress, Size] = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
-    if (!VirtualAddress || !Size)
+    const auto& [debug_rva, debug_size] = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_DEBUG];
+    if (!debug_rva || !debug_size)
       return false;
 
-    const auto* dbg_entries = reinterpret_cast<IMAGE_DEBUG_DIRECTORY*>(module.base + VirtualAddress);
-    const int count = Size / sizeof(IMAGE_DEBUG_DIRECTORY);
+    const auto* debug_entries = reinterpret_cast<IMAGE_DEBUG_DIRECTORY*>(module.base + debug_rva);
+    const int count = debug_size / sizeof(IMAGE_DEBUG_DIRECTORY);
 
     for (int i = 0; i < count; i++) {
-      if (dbg_entries[i].Type != IMAGE_DEBUG_TYPE_CODEVIEW)
+      if (debug_entries[i].Type != IMAGE_DEBUG_TYPE_CODEVIEW)
         continue;
 
-      const auto* cv = reinterpret_cast<const std::uint32_t*>(module.base + dbg_entries[i].AddressOfRawData);
-      const std::uint32_t signature = cv[0];
+      const auto* code_view = reinterpret_cast<const std::uint32_t*>(module.base + debug_entries[i].AddressOfRawData);
+      const std::uint32_t signature = code_view[0];
 
       if (signature == 'SDSR') { // RSDS PDB 7.0
-        const auto* guid = reinterpret_cast<const GUID*>(&cv[1]);
-        const auto age = cv[5];
-        auto pdbname = reinterpret_cast<const char*>(&cv[6]);
+        const auto* guid = reinterpret_cast<const GUID*>(&code_view[1]);
+        const auto age = code_view[5];
+        auto pdbname = reinterpret_cast<const char*>(&code_view[6]);
 
         out_filename = pdbname;
         out_guid = std::format(
@@ -69,11 +69,11 @@ namespace {
         return true;
       }
       if (signature == '01BN' || signature == '90BN') { // NB10/NB09  PDB 2.0
-        const auto age = cv[3];
-        auto pdbname = reinterpret_cast<const char*>(&cv[4]);
+        const auto age = code_view[3];
+        auto pdbname = reinterpret_cast<const char*>(&code_view[4]);
 
         out_filename = pdbname;
-        out_guid = std::format("{:08X}", cv[2]);
+        out_guid = std::format("{:08X}", code_view[2]);
         out_age = age;
         return true;
       }

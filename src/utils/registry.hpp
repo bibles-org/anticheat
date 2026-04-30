@@ -15,5 +15,7 @@ namespace utils {
                   on_value_found,
           const std::function<bool(std::wstring_view name)>& on_subkey_found = nullptr
   );
+
+  bool is_win11_or_greater();
 } // namespace utils
 #endif // REGISTRY_HPP

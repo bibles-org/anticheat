@@ -23,7 +23,7 @@ namespace detections {
         utils::submit_screenshot_report("GeForce_");
       }
 
-      // medal overlay, uses FindWindowA but it doesnt matter
+      // medal overlay, it uses FindWindowA to check but it doesnt matter
       if (window.class_name == L"MedalOverlayClass" && window.window_text == L"MedalOverlay") {
         if (window.win_width > 100 && window.win_height > 100 && (window.wi.dwExStyle & WS_EX_TOPMOST)) {
           loader::append_report(
