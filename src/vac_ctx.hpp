@@ -13,6 +13,7 @@ class vac_ctx {
   virtual ~vac_ctx();
 
   virtual bool on_process_attach();
+  virtual bool on_thread_attach();
 };
 
 #endif // MAIN_CLASS_HPP
