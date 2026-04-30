@@ -66,6 +66,4 @@ namespace detections {
       }
     }
   }
-
-
 } // namespace detections

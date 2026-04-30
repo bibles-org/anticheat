@@ -21,9 +21,9 @@ namespace utils {
 
   bool enumerate_registry_content(
           HKEY hkey,
-          const std::function<bool(DWORD type, std::wstring_view name, const std::vector<std::uint8_t>& data)>&
+          const std::function<bool(DWORD type, std::wstring_view value_name, const std::vector<std::uint8_t>& data)>&
                   on_value_found,
-          const std::function<bool(std::wstring_view name)>& on_subkey_found
+          const std::function<bool(std::wstring_view subkey_name)>& on_subkey_found
   ) {
 
     DWORD num_subkeys = 0;
@@ -79,18 +79,16 @@ namespace utils {
     return true;
   }
 
-  bool is_win11_or_greater() {
+  bool is_win10_or_greater() {
     OSVERSIONINFO version_info{.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW)};
     RtlGetVersion(&version_info);
 
-    if (version_info.dwMajorVersion > 10) {
+    if (version_info.dwMajorVersion > 10)
       return true;
-    }
 
-    if (version_info.dwMajorVersion < 10) {
+    if (version_info.dwMajorVersion < 10)
       return false;
-    }
 
-    return version_info.dwBuildNumber >= 22000;
+    return true;
   }
 } // namespace utils

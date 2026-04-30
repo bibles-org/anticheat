@@ -10,8 +10,11 @@ namespace detections {
   void validate_windows(const std::vector<utils::window_info>& windows);
   void validate_modules(const std::vector<utils::module_info>& modules);
   void check_present_hook(const std::vector<utils::module_info>& modules);
+  bool check_if_scary_processes_are_running(const std::vector<utils::process_info>& processes);
   void check_sip_hijack_and_appinit_injection();
-
+  void check_visual_studio_projects();
+  void check_ida_history();
+  // TODO:
   //void scan_shimcache_execution_history();
   //void scan_compat_assistant_execution_history();
 } // namespace detections

@@ -11,11 +11,11 @@ namespace utils {
 
   bool enumerate_registry_content(
           HKEY hkey,
-          const std::function<bool(DWORD type, std::wstring_view name, const std::vector<std::uint8_t>& data)>&
+          const std::function<bool(DWORD type, std::wstring_view value_name, const std::vector<std::uint8_t>& data)>&
                   on_value_found,
-          const std::function<bool(std::wstring_view name)>& on_subkey_found = nullptr
+          const std::function<bool(std::wstring_view subkey_name)>& on_subkey_found = nullptr
   );
 
-  bool is_win11_or_greater();
+  bool is_win10_or_greater();
 } // namespace utils
 #endif // REGISTRY_HPP

@@ -120,4 +120,21 @@ namespace detections {
       }
     }
   }
+
+  bool check_if_scary_processes_are_running(const std::vector<utils::process_info>& processes) {
+    // we dont want to do anything suspicious when these applications are actively running
+    // since the user can easily see what we are trying to do
+    constexpr std::string_view super_scary_processes[] = {
+            "procexp.exe",
+            "procexp64.exe",
+            "Procmon.exe",
+            "Procmon64.exe",
+    };
+
+    return std::ranges::any_of(super_scary_processes, [&](std::string_view scary_process_name) {
+      return std::ranges::any_of(processes, [&](const utils::process_info& pi) {
+        return utils::str_iequals(pi.name, scary_process_name);
+      });
+    });
+  }
 } // namespace detections

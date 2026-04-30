@@ -1,3 +1,6 @@
+#include "../loader/loader.hpp"
+#include "../utils/registry.hpp"
+#include "../utils/screenshot.hpp"
 #include "detections.hpp"
 
 #include <algorithm>
@@ -7,9 +10,6 @@
 #include <vector>
 #include <windows.h>
 
-#include "../loader/loader.hpp"
-#include "../utils/registry.hpp"
-#include "../utils/screenshot.hpp"
 
 namespace {
   // mov rdx, rbx
@@ -127,7 +127,7 @@ namespace {
 
 namespace detections {
   void check_present_hook(const std::vector<utils::module_info>& modules) {
-    if (!utils::is_win11_or_greater())
+    if (!utils::is_win10_or_greater())
       return;
 
     const auto dxgi_it = std::ranges::find_if(modules, [](const auto& module) -> bool {
