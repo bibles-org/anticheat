@@ -10,7 +10,7 @@
 #include <shlobj.h>
 
 namespace {
-  bool report_vistual_studio_private_settings(std::wstring_view subkey_name) {
+  bool report_visual_studio_private_settings(std::wstring_view subkey_name) {
     // yep, we do this everytime for no reason.
     wchar_t* folder_path_raw = nullptr;
     std::wstring folder_path;
@@ -111,7 +111,7 @@ namespace detections {
                   HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\VisualStudio", 0, KEY_READ | KEY_WOW64_64KEY, &hkey
           ) == ERROR_SUCCESS) {
 
-        utils::enumerate_registry_content(hkey, nullptr, &report_vistual_studio_private_settings);
+        utils::enumerate_registry_content(hkey, nullptr, &report_visual_studio_private_settings);
 
         RegCloseKey(hkey);
       }
