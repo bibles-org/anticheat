@@ -36,6 +36,7 @@ add_executable(anticheat
     gdi32
     ntdll
     shlwapi
+    uuid
   )
 
   if(MINGW)

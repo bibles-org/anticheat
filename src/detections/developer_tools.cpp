@@ -81,7 +81,7 @@ namespace detections {
       const std::wstring subkey = std::format(L"Software\\Microsoft\\VisualStudio\\{}.0\\ProjectMRUList", i);
 
       HKEY hkey = nullptr;
-      if (RegOpenKeyExW(HKEY_CURRENT_USER, subkey.c_str(), 0, KEY_READ, &hkey) != ERROR_SUCCESS)
+      if (RegOpenKeyExW(HKEY_CURRENT_USER, subkey.c_str(), 0, KEY_READ | KEY_WOW64_64KEY, &hkey) != ERROR_SUCCESS)
         continue;
 
       utils::enumerate_registry_content(hkey, std::bind_front(report_visual_studio_project, version_label));
