@@ -36,6 +36,7 @@ namespace utils {
     while (entry != head) {
       const LDR_DATA_TABLE_ENTRY* mod = CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
       result.emplace_back(*mod);
+      entry = entry->Flink;
     }
 
     return result;

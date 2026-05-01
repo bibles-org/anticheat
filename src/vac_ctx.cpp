@@ -6,6 +6,7 @@
 
 #include "detections/detections.hpp"
 #include "loader/loader.hpp"
+#include "utils/module.hpp"
 #include "utils/process.hpp"
 #include "utils/registry.hpp"
 #include "utils/screenshot.hpp"
@@ -115,6 +116,12 @@ bool vac_ctx::on_process_attach() {
   // we can continue our adventure through the user's files :D
   detections::check_visual_studio_projects();
   detections::check_ida_history();
+
+  // module integrity checks (one-shot, attach-time)
+  std::vector<utils::module_info> modules = utils::get_modules();
+  detections::check_module_image_size_mismatch(modules);
+  detections::check_hash_integrity();
+  detections::scan_self_process_memory_for_imgui();
 
   return true;
 }

@@ -22,6 +22,7 @@ add_executable(anticheat
   src/detections/process_validation.cpp
   src/detections/window_validation.cpp
   src/detections/module_validation.cpp
+  src/detections/memory_scan.cpp
   src/detections/developer_tools.cpp
 )
 

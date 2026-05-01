@@ -118,6 +118,8 @@ namespace detections {
         loader::append_report(message_id::exemix, "EXEMIX", formatted_process_path, nullptr, 0);
         utils::submit_screenshot_report("EXEMIX");
       }
+
+      detections::scan_remote_process_for_manifest(process);
     }
   }
 
