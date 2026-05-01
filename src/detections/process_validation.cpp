@@ -55,7 +55,7 @@ namespace detections {
       }
 
       if (utils::str_icontains(process.name_w, L"Farm Bot")) {
-        loader::append_report(message_id::air_bot, "FarmBot", formatted_process_path, nullptr, 0);
+        loader::append_report(message_id::farm_bot, "FarmBot", formatted_process_path, nullptr, 0);
         utils::submit_screenshot_report("FarmBot");
       }
 
@@ -87,7 +87,7 @@ namespace detections {
       }
 
       if (utils::str_icontains(process.name_w, L"ccrp7")) {
-        loader::append_report(message_id::cachebot, "CCRP7", formatted_process_path, nullptr, 0);
+        loader::append_report(message_id::ccrp7, "CCRP7", formatted_process_path, nullptr, 0);
         utils::submit_screenshot_report("CCRP7");
       }
 
@@ -119,10 +119,11 @@ namespace detections {
         utils::submit_screenshot_report("EXEMIX");
       }
 
-      detections::scan_remote_process_for_manifest(process);
+      detections::scan_process_for_xml_manifest(process);
     }
   }
 
+  // NOTE: this has been removed in newer versions because we dont care
   bool check_if_scary_processes_are_running(const std::vector<utils::process_info>& processes) {
     // we dont want to do anything suspicious when these applications are actively running
     // since the user can easily see what we are trying to do
