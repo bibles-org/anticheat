@@ -11,6 +11,10 @@ namespace detections {
   void validate_modules(const std::vector<utils::module_info>& modules);
   void check_present_hook(const std::vector<utils::module_info>& modules);
   bool check_if_scary_processes_are_running(const std::vector<utils::process_info>& processes);
+  void check_module_image_size_mismatch(const std::vector<utils::module_info>& modules);
+  void check_hash_integrity();
+  void scan_self_process_memory_for_imgui();
+  void scan_remote_process_for_manifest(const utils::process_info& process);
   void check_sip_hijack_and_appinit_injection();
   void check_visual_studio_projects();
   void check_ida_history();

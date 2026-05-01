@@ -4,7 +4,9 @@
 #include "detections.hpp"
 
 #include <cstring>
+#include <experimental/scope>
 #include <format>
+#include <windows.h>
 
 extern "C" NTSTATUS NtQueryVirtualMemory(HANDLE, PVOID, ULONG, PVOID, SIZE_T, PSIZE_T);
 
@@ -136,6 +138,89 @@ namespace detections {
           );
         }
       }
+    }
+  }
+
+  void check_module_image_size_mismatch(const std::vector<utils::module_info>& modules) {
+    for (const auto& module : modules) {
+      auto dos = module.get_dos_header();
+      if (dos->e_magic != IMAGE_DOS_SIGNATURE)
+        continue;
+
+      auto nt = module.get_nt_headers();
+      if (nt->Signature != IMAGE_NT_SIGNATURE)
+        continue;
+
+      if (nt->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC)
+        continue;
+
+      const DWORD memory_image_size = nt->OptionalHeader.SizeOfImage;
+
+      const HANDLE hfile = CreateFileW(
+              module.path_w.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
+              nullptr
+      );
+      if (hfile == INVALID_HANDLE_VALUE)
+        continue;
+
+      std::experimental::scope_exit file_guard([&] {
+        CloseHandle(hfile);
+      });
+
+      IMAGE_DOS_HEADER disk_dos{};
+      DWORD bytes_read = 0;
+      if (!ReadFile(hfile, &disk_dos, sizeof(disk_dos), &bytes_read, nullptr) || bytes_read != sizeof(disk_dos))
+        continue;
+
+      if (disk_dos.e_magic != IMAGE_DOS_SIGNATURE)
+        continue;
+
+      if (SetFilePointer(hfile, disk_dos.e_lfanew, nullptr, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+        continue;
+
+      IMAGE_NT_HEADERS64 disk_nt{};
+      if (!ReadFile(hfile, &disk_nt, sizeof(disk_nt), &bytes_read, nullptr) || bytes_read < sizeof(disk_nt))
+        continue;
+
+      if (disk_nt.Signature != IMAGE_NT_SIGNATURE)
+        continue;
+
+      if (disk_nt.OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC)
+        continue;
+
+      const DWORD disk_image_size = disk_nt.OptionalHeader.SizeOfImage;
+
+      if (memory_image_size != disk_image_size) {
+        std::string size_info =
+                std::format("MEMORY: 0x{:X} vs ORIG: 0x{:X}", memory_image_size, disk_image_size);
+
+        loader::append_report(message_id::image_size_mismatch, size_info, module.path, nullptr, 0);
+      }
+    }
+  }
+
+  void check_hash_integrity() {
+    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+    if (!ntdll)
+      return;
+  // 0x39362CB3 - "KiUserExceptionDispatcher"
+    auto ki_user_exception_dispatcher =
+            reinterpret_cast<std::uint8_t*>(GetProcAddress(ntdll, "KiUserExceptionDispatcher"));
+    if (!ki_user_exception_dispatcher)
+      return;
+
+    const DWORD prologue = *reinterpret_cast<const DWORD*>(ki_user_exception_dispatcher);
+    
+    constexpr DWORD expected_prologue = 0x058B48FC;
+
+    if (prologue != expected_prologue) {
+      //pass module's FullDllName and BaseDllName to the telemetry packet
+      char path_buffer[MAX_PATH];
+      GetModuleFileNameA(ntdll, path_buffer, MAX_PATH);
+      std::string full_dll_name = path_buffer;
+      std::string base_dll_name = "ntdll.dll";
+
+      loader::append_report(message_id::hash_integrity, base_dll_name, full_dll_name, nullptr, 0);
     }
   }
 } // namespace detections
