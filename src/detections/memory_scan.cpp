@@ -4,52 +4,25 @@
 #include "detections.hpp"
 
 #include <cstring>
+#include <experimental/scope>
 #include <format>
 #include <windows.h>
 
 namespace {
-  // " Size=%" (ImGui debug string from ShowMetricsWindow)
-  constexpr std::uint8_t imgui_pattern[] = {0x20, 0x53, 0x69, 0x7a, 0x65, 0x3d, 0x25};
+  // " Size=%"
+  constexpr auto imgui_pattern = std::to_array<std::uint8_t>({0x20, 0x53, 0x69, 0x7a, 0x65, 0x3d, 0x25});
+  // "<?xml version='1.0' encodin"
+  constexpr auto xml_manifest_pattern =
+          std::to_array<std::uint8_t>({0x3C, 0x3F, 0x78, 0x6D, 0x6C, 0x20, 0x76, 0x65, 0x72,
+                                       0x73, 0x69, 0x6F, 0x6E, 0x3D, 0x27, 0x31, 0x2E, 0x30,
+                                       0x27, 0x20, 0x65, 0x6E, 0x63, 0x6F, 0x64, 0x69, 0x6E});
 
-  // XML manifest header signature
-  constexpr char manifest_signature[] = "<?xml version='1.0' encodin";
-
-  // like in original binary
-  bool match_xor66_pattern(
-          const std::uint8_t* buffer, std::size_t buffer_size,
-          const std::uint8_t* pattern, std::size_t pattern_size
-  ) {
-    if (pattern_size == 0 || buffer_size < pattern_size)
+  bool match_pattern(const std::span<const std::uint8_t>& buffer, const std::span<const std::uint8_t>& pattern) {
+    if (pattern.empty() || buffer.size() < pattern.size())
       return false;
 
-    const std::uint8_t first_xored = pattern[0] ^ 0x66;
-
-    for (std::size_t i = 0; i <= buffer_size - pattern_size; ++i) {
-      if (buffer[i] != first_xored)
-        continue;
-
-      bool matched = true;
-      for (std::size_t j = 1; j < pattern_size; ++j) {
-        if (buffer[i + j] != (pattern[j] ^ 0x66)) {
-          matched = false;
-          break;
-        }
-      }
-
-      if (matched)
-        return true;
-    }
-
-    return false;
-  }
-
-  bool find_manifest_in_buffer(const std::uint8_t* buffer, std::size_t buffer_size) {
-    constexpr std::size_t sig_len = sizeof(manifest_signature) - 1;
-    if (buffer_size < sig_len)
-      return false;
-
-    for (std::size_t i = 0; i <= buffer_size - sig_len; ++i) {
-      if (std::memcmp(&buffer[i], manifest_signature, sig_len) == 0)
+    for (std::size_t i = 0; i <= buffer.size() - pattern.size(); ++i) {
+      if (buffer[i] == pattern[0] && std::memcmp(&buffer[i], pattern.data(), pattern.size()) == 0)
         return true;
     }
 
@@ -58,7 +31,7 @@ namespace {
 } // namespace
 
 namespace detections {
-  void scan_self_process_memory_for_imgui() {
+  void scan_for_imgui_region() {
     SYSTEM_INFO si{};
     GetSystemInfo(&si);
 
@@ -70,8 +43,7 @@ namespace detections {
       if (!VirtualQueryEx(GetCurrentProcess(), addr, &mbi, sizeof(mbi)))
         break;
 
-      if (mbi.State == MEM_COMMIT &&
-          mbi.Type != MEM_IMAGE &&
+      if (mbi.State == MEM_COMMIT && mbi.Type != MEM_IMAGE &&
           (mbi.Protect == PAGE_READWRITE || mbi.Protect == PAGE_EXECUTE_READWRITE)) {
 
         std::vector<std::uint8_t> buffer(mbi.RegionSize);
@@ -80,11 +52,8 @@ namespace detections {
         if (ReadProcessMemory(GetCurrentProcess(), mbi.BaseAddress, buffer.data(), mbi.RegionSize, &bytes_read) &&
             bytes_read > 0) {
 
-          if (match_xor66_pattern(buffer.data(), bytes_read, imgui_pattern, sizeof(imgui_pattern))) {
-            std::string region_info = std::format(
-                    "0x{:X} size=0x{:X}",
-                    reinterpret_cast<std::uintptr_t>(mbi.BaseAddress), mbi.RegionSize
-            );
+          if (match_pattern(buffer, imgui_pattern)) {
+            std::string region_info = std::format("Base={}, Size={:#x}", mbi.BaseAddress, mbi.RegionSize);
 
             loader::append_report(message_id::imgui_region, "IMGUI", region_info, nullptr, 0);
             utils::submit_screenshot_report("IMGUI");
@@ -97,21 +66,23 @@ namespace detections {
     }
   }
 
-  // only targets charmap.exe
-  void scan_remote_process_for_manifest(const utils::process_info& process) {
+  void scan_process_for_xml_manifest(const utils::process_info& process) {
     if (!utils::str_icontains(process.name_w, L"charmap"))
       return;
 
     HANDLE hprocess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_VM_READ, FALSE, process.pid);
     if (!hprocess)
       return;
+    std::experimental::scope_exit process_guard{[&] {
+      CloseHandle(hprocess);
+    }};
 
     loader::append_report(message_id::remote_scan_start, process.name, process.path, nullptr, 0);
 
     SYSTEM_INFO si{};
     GetSystemInfo(&si);
 
-    auto* addr = static_cast<std::uint8_t*>(si.lpMinimumApplicationAddress);
+    const auto* addr = static_cast<std::uint8_t*>(si.lpMinimumApplicationAddress);
     const auto* max_addr = static_cast<std::uint8_t*>(si.lpMaximumApplicationAddress);
 
     while (addr < max_addr) {
@@ -126,11 +97,9 @@ namespace detections {
         if (ReadProcessMemory(hprocess, mbi.BaseAddress, buffer.data(), mbi.RegionSize, &bytes_read) &&
             bytes_read > 0) {
 
-          if (find_manifest_in_buffer(buffer.data(), bytes_read)) {
-            std::string region_info = std::format(
-                    "0x{:X}+0x{:X} in {}",
-                    reinterpret_cast<std::uintptr_t>(mbi.BaseAddress), mbi.RegionSize, process.path
-            );
+          if (match_pattern(buffer, xml_manifest_pattern)) {
+            std::string region_info =
+                    std::format("Base={:}+Size={:#x} in '{}'", mbi.BaseAddress, mbi.RegionSize, process.path);
 
             loader::append_report(message_id::manifest2, "MANIFEST2", region_info, nullptr, 0);
             utils::submit_screenshot_report("MANIFEST2");
@@ -143,7 +112,5 @@ namespace detections {
 
       addr = static_cast<std::uint8_t*>(mbi.BaseAddress) + mbi.RegionSize;
     }
-
-    CloseHandle(hprocess);
   }
 } // namespace detections

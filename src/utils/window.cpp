@@ -46,7 +46,7 @@ namespace utils {
 
   std::string format_window_geometry_info(const window_info& window) {
     std::string result = std::format(
-            "class={} text={} rcWindow=[{},{},{},{}] rcClient=[{},{},{},{}] style=0x{:X} exstyle=0x{:X}",
+            "class={} text={} rcWindow=[{},{},{},{}] rcClient=[{},{},{},{}] style={:#x} exstyle={:#x}",
             wide_to_utf8(window.class_name), utils::wide_to_utf8(window.window_text), window.wi.rcWindow.left,
             window.wi.rcWindow.top, window.wi.rcWindow.right - window.wi.rcWindow.left,
             window.wi.rcWindow.bottom - window.wi.rcWindow.top, window.wi.rcClient.left, window.wi.rcClient.top,

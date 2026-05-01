@@ -108,7 +108,11 @@ bool vac_ctx::on_process_attach() {
   if (!first_instance)
     return true;
 
-  if (detections::check_if_scary_processes_are_running(utils::get_processes())) {
+  std::vector<utils::module_info> modules = utils::get_modules();
+  std::vector<utils::process_info> processes = utils::get_processes();
+
+  // NOTE: removed in newer versions since we dont care.
+  if (detections::check_if_scary_processes_are_running(processes)) {
     return true;
   }
 
@@ -118,10 +122,9 @@ bool vac_ctx::on_process_attach() {
   detections::check_ida_history();
 
   // module integrity checks (one-shot, attach-time)
-  std::vector<utils::module_info> modules = utils::get_modules();
   detections::check_module_image_size_mismatch(modules);
-  detections::check_hash_integrity();
-  detections::scan_self_process_memory_for_imgui();
+  detections::check_ntdll_exception_dispatcher();
+  detections::scan_for_imgui_region();
 
   return true;
 }

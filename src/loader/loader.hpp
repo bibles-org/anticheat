@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <string_view>
 
-enum class message_id : std::uint32_t{
+enum class message_id : std::uint32_t {
   wine = 0,
   screenshot = 0x2694,
   screenshot_error = 0x0000,
@@ -61,8 +61,8 @@ enum class message_id : std::uint32_t{
   imgui_region = 0x1436,
   manifest2 = 0x1436,
   remote_scan_start = 0x1432,
-  image_size_mismatch = 0x1F43,
-  hash_integrity = 0x1F48,
+  module_image_size_mismatch = 0x1F43,
+  exception_dispatcher_mismatch = 0x1F48,
   blacklisted_paths = 0x26A0,
   ida_history_entry = 0x2240,
   visual_studio_project_entry = 0x2241,

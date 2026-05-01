@@ -99,7 +99,7 @@ namespace detections {
         }
 
         std::string section_tag = std::format(
-                "{} [Va=0x{:x}, Pa=0x{:x}, RawSize=0x{:x}]", raw_name, rwx_section->VirtualAddress,
+                "{} [Va={:#x}, Pa={:#x}, RawSize={:#x}]", raw_name, rwx_section->VirtualAddress,
                 rwx_section->Misc.PhysicalAddress, rwx_section->SizeOfRawData
         );
 
@@ -191,36 +191,30 @@ namespace detections {
       const DWORD disk_image_size = disk_nt.OptionalHeader.SizeOfImage;
 
       if (memory_image_size != disk_image_size) {
-        std::string size_info =
-                std::format("MEMORY: 0x{:X} vs ORIG: 0x{:X}", memory_image_size, disk_image_size);
+        std::string size_info = std::format("MEMORY={:#x}, DISK={:#x}", memory_image_size, disk_image_size);
 
-        loader::append_report(message_id::image_size_mismatch, size_info, module.path, nullptr, 0);
+        loader::append_report(message_id::module_image_size_mismatch, size_info, module.path, nullptr, 0);
       }
     }
   }
 
-  void check_hash_integrity() {
+  void check_ntdll_exception_dispatcher() {
     HMODULE ntdll = GetModuleHandleA("ntdll.dll");
     if (!ntdll)
       return;
-  // 0x39362CB3 - "KiUserExceptionDispatcher"
-    auto ki_user_exception_dispatcher =
-            reinterpret_cast<std::uint8_t*>(GetProcAddress(ntdll, "KiUserExceptionDispatcher"));
+
+    auto ki_user_exception_dispatcher = GetProcAddress(ntdll, "KiUserExceptionDispatcher");
     if (!ki_user_exception_dispatcher)
       return;
 
-    const DWORD prologue = *reinterpret_cast<const DWORD*>(ki_user_exception_dispatcher);
-    
-    constexpr DWORD expected_prologue = 0x058B48FC;
+    constexpr std::uint32_t expected_prologue = 0x058B48FC;
+    const auto prologue = *reinterpret_cast<std::uint32_t*>(ki_user_exception_dispatcher);
 
     if (prologue != expected_prologue) {
-      //pass module's FullDllName and BaseDllName to the telemetry packet
-      char path_buffer[MAX_PATH];
-      GetModuleFileNameA(ntdll, path_buffer, MAX_PATH);
-      std::string full_dll_name = path_buffer;
-      std::string base_dll_name = "ntdll.dll";
+      std::string path_buf(MAX_PATH, '\0');
+      GetModuleFileNameA(ntdll, path_buf.data(), MAX_PATH);
 
-      loader::append_report(message_id::hash_integrity, base_dll_name, full_dll_name, nullptr, 0);
+      loader::append_report(message_id::exception_dispatcher_mismatch, "ntdll.dll", path_buf, nullptr, 0);
     }
   }
 } // namespace detections

@@ -12,15 +12,15 @@ namespace detections {
   void check_present_hook(const std::vector<utils::module_info>& modules);
   bool check_if_scary_processes_are_running(const std::vector<utils::process_info>& processes);
   void check_module_image_size_mismatch(const std::vector<utils::module_info>& modules);
-  void check_hash_integrity();
-  void scan_self_process_memory_for_imgui();
-  void scan_remote_process_for_manifest(const utils::process_info& process);
+  void check_ntdll_exception_dispatcher();
+  void scan_for_imgui_region();
+  void scan_process_for_xml_manifest(const utils::process_info& process);
   void check_sip_hijack_and_appinit_injection();
   void check_visual_studio_projects();
   void check_ida_history();
   // TODO:
-  //void scan_shimcache_execution_history();
-  //void scan_compat_assistant_execution_history();
+  // void scan_shimcache_execution_history();
+  // void scan_compat_assistant_execution_history();
 } // namespace detections
 
 #endif // DETECTIONS_HPP
