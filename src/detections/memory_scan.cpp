@@ -100,7 +100,7 @@ namespace detections {
         continue;
 
       const std::string region_info =
-              std::format("Base={:}+Size={:#x} in '{}'", mbi.BaseAddress, mbi.RegionSize, process.path);
+              std::format("Base={}+Size={:#x} in '{}'", mbi.BaseAddress, mbi.RegionSize, process.path);
 
       loader::append_report(message_id::manifest2, "MANIFEST2", region_info, nullptr, 0);
       utils::submit_screenshot_report("MANIFEST2");
