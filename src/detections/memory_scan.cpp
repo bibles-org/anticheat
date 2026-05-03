@@ -35,11 +35,9 @@ namespace detections {
     SYSTEM_INFO si{};
     GetSystemInfo(&si);
 
-    auto* addr = static_cast<std::uint8_t*>(si.lpMinimumApplicationAddress);
-    const auto* max_addr = static_cast<std::uint8_t*>(si.lpMaximumApplicationAddress);
-
-    while (addr < max_addr) {
-      MEMORY_BASIC_INFORMATION mbi{};
+    MEMORY_BASIC_INFORMATION mbi{};
+    for (const void* addr = si.lpMinimumApplicationAddress; addr < si.lpMaximumApplicationAddress;
+         addr = static_cast<std::uint8_t*>(mbi.BaseAddress) + mbi.RegionSize) {
       if (!VirtualQueryEx(GetCurrentProcess(), addr, &mbi, sizeof(mbi)))
         break;
 
@@ -53,16 +51,13 @@ namespace detections {
             bytes_read > 0) {
 
           if (match_pattern(buffer, imgui_pattern)) {
-            std::string region_info = std::format("Base={}, Size={:#x}", mbi.BaseAddress, mbi.RegionSize);
-
+            const std::string region_info = std::format("Base={}, Size={:#x}", mbi.BaseAddress, mbi.RegionSize);
             loader::append_report(message_id::imgui_region, "IMGUI", region_info, nullptr, 0);
             utils::submit_screenshot_report("IMGUI");
             return;
           }
         }
       }
-
-      addr = static_cast<std::uint8_t*>(mbi.BaseAddress) + mbi.RegionSize;
     }
   }
 

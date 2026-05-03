@@ -26,7 +26,6 @@ namespace detections {
       const std::string formatted_process_path = std::format("(PID: {}) path={}", process.pid, process.path);
       const std::string formatted_image_size = std::format("PID: {}, Size:{}", process.pid, process.file_size);
 
-
       if (utils::str_icontains(process.name_w, L"vmconnect.exe")) {
         loader::append_report(message_id::vmware2, nullptr, 0, nullptr, 0, nullptr, 0);
         utils::submit_screenshot_report("VMWARE2");
@@ -81,7 +80,6 @@ namespace detections {
       }
 
       if (utils::str_icontains(process.name_w, L"._cache_")) {
-
         loader::append_report(message_id::cachebot, "CACHEBOT", formatted_process_path, nullptr, 0);
         utils::submit_screenshot_report("CACHEBOT");
       }
