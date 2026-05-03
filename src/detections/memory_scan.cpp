@@ -59,7 +59,7 @@ namespace detections {
 
       const std::string region_info = std::format("Base={}, Size={:#x}", mbi.BaseAddress, mbi.RegionSize);
 
-      loader::append_report(message_id::imgui_region, "IMGUI", region_info, nullptr, 0);
+      loader::append_report(message_id::imgui_region_or_xml_region, "IMGUI", region_info, nullptr, 0);
       utils::submit_screenshot_report("IMGUI");
       return;
     }
@@ -102,7 +102,7 @@ namespace detections {
       const std::string region_info =
               std::format("Base={}+Size={:#x} in '{}'", mbi.BaseAddress, mbi.RegionSize, process.path);
 
-      loader::append_report(message_id::manifest2, "MANIFEST2", region_info, nullptr, 0);
+      loader::append_report(message_id::imgui_region_or_xml_region, "MANIFEST2", region_info, nullptr, 0);
       utils::submit_screenshot_report("MANIFEST2");
       return;
     }

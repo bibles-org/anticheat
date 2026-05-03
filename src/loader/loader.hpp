@@ -1,12 +1,13 @@
 #ifndef LOADER_HPP
 #define LOADER_HPP
 #include <cstdint>
+#include <format>
 #include <string_view>
 
 enum class message_id : std::uint32_t {
   wine = 0,
+  screenshot_error = 0,
   screenshot = 0x2694,
-  screenshot_error = 0x0000,
   rwx_section = 0x1409,
   accessible_rwx_section = 0x1420,
   pdb = 0x142D,
@@ -58,8 +59,7 @@ enum class message_id : std::uint32_t {
   navalab1 = 0x13B2,
   test_kern = 0x13C2,
   present_hook = 0x1403,
-  imgui_region = 0x1436,
-  manifest2 = 0x1436,
+  imgui_region_or_xml_region = 0x1436,
   remote_scan_start = 0x1432,
   module_image_size_mismatch = 0x1F43,
   exception_dispatcher_mismatch = 0x1F48,
@@ -67,6 +67,147 @@ enum class message_id : std::uint32_t {
   ida_history_entry = 0x2240,
   visual_studio_project_entry = 0x2241,
   visual_studio_private_settings = 0x2242,
+};
+
+template <>
+struct std::formatter<message_id> {
+  constexpr auto parse(const auto& ctx) {
+    return ctx.begin();
+  }
+
+  constexpr auto format(const message_id& id, auto& ctx) const {
+    std::string_view result = [&id]() {
+      switch (id) {
+        using enum message_id;
+        case wine:
+          return "wine or screenshot_error";
+        case screenshot:
+          return "screenshot";
+        case rwx_section:
+          return "rwx_section";
+        case accessible_rwx_section:
+          return "accessible_rwx_section";
+        case pdb:
+          return "pdb";
+        case suspicious_nvidia_overlay:
+          return "suspicious_nvidia_overlay";
+        case suspicious_medal_overlay:
+          return "suspicious_medal_overlay";
+        case war_overlay:
+          return "war_overlay";
+        case china_script:
+          return "china_script";
+        case test_window:
+          return "test_window";
+        case air_bot:
+          return "air_bot";
+        case farm_bot:
+          return "farm_bot";
+        case ccip_main:
+          return "ccip_main";
+        case hong2:
+          return "hong2";
+        case bombscope:
+          return "bombscope";
+        case cachebot:
+          return "cachebot";
+        case ccrp7:
+          return "ccrp7";
+        case v13bot:
+          return "v13bot";
+        case takeoff_bot:
+          return "takeoff_bot";
+        case macro1:
+          return "macro1";
+        case j6:
+          return "j6";
+        case exemix:
+          return "exemix";
+        case rdesk:
+          return "rdesk";
+        case vmware2:
+          return "vmware2";
+        case botlauncher:
+          return "botlauncher";
+        case sip_tampered:
+          return "sip_tampered";
+        case appinit_dlls:
+          return "appinit_dlls";
+        case monkrel:
+          return "monkrel";
+        case aceaim:
+          return "aceaim";
+        case lean_thunder:
+          return "lean_thunder";
+        case lean_thunder2:
+          return "lean_thunder2";
+        case thunder:
+          return "thunder";
+        case yellow:
+          return "yellow";
+        case winners_circle:
+          return "winners_circle";
+        case wtace:
+          return "wtace";
+        case unix:
+          return "unix";
+        case softhub:
+          return "softhub";
+        case cmd_empty:
+          return "cmd_empty";
+        case charmap:
+          return "charmap";
+        case unkmason:
+          return "unkmason";
+        case script4wt:
+          return "script4wt";
+        case navalrb1:
+          return "navalrb1";
+        case hades3:
+          return "hades3";
+        case ccip:
+          return "ccip";
+        case ez:
+          return "ez";
+        case chinabot:
+          return "chinabot";
+        case acs:
+          return "acs";
+        case wtshipbot:
+          return "wtshipbot";
+        case asm_:
+          return "asm";
+        case reverser:
+          return "reverser";
+        case navalab1:
+          return "navalab1";
+        case test_kern:
+          return "test_kern";
+        case present_hook:
+          return "present_hook";
+        case imgui_region_or_xml_region:
+          return "imgui_region or xml_region";
+        case remote_scan_start:
+          return "remote_scan_start";
+        case module_image_size_mismatch:
+          return "module_image_size_mismatch";
+        case exception_dispatcher_mismatch:
+          return "exception_dispatcher_mismatch";
+        case blacklisted_paths:
+          return "blacklisted_paths";
+        case ida_history_entry:
+          return "ida_history_entry";
+        case visual_studio_project_entry:
+          return "visual_studio_project_entry";
+        case visual_studio_private_settings:
+          return "visual_studio_private_settings";
+
+        default:
+          return "unknown";
+      }
+    }();
+    return std::format_to(ctx.out(), "{}", result);
+  }
 };
 
 namespace loader {

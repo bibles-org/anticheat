@@ -9,7 +9,7 @@ namespace loader {
           message_id id, const char* str1, std::uint32_t str1_len, const char* str2, std::uint32_t str2_len,
           const std::uint8_t* data, std::uint32_t data_len
   ) {
-    std::cout << std::format("[{:#x}]:\n", std::to_underlying(id));
+    std::cout << std::format("[{:#x}] {}:\n", std::to_underlying(id), id);
 
     if (str1 && str1_len) {
       const std::string_view str1_view{str1, static_cast<size_t>(str1_len)};
