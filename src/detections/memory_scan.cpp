@@ -38,26 +38,30 @@ namespace detections {
     MEMORY_BASIC_INFORMATION mbi{};
     for (const void* addr = si.lpMinimumApplicationAddress; addr < si.lpMaximumApplicationAddress;
          addr = static_cast<std::uint8_t*>(mbi.BaseAddress) + mbi.RegionSize) {
+
       if (!VirtualQueryEx(GetCurrentProcess(), addr, &mbi, sizeof(mbi)))
         break;
 
-      if (mbi.State == MEM_COMMIT && mbi.Type != MEM_IMAGE &&
-          (mbi.Protect == PAGE_READWRITE || mbi.Protect == PAGE_EXECUTE_READWRITE)) {
+      if (mbi.State != MEM_COMMIT || mbi.Type == MEM_IMAGE ||
+          (mbi.Protect != PAGE_READWRITE && mbi.Protect != PAGE_EXECUTE_READWRITE))
+        continue;
 
-        std::vector<std::uint8_t> buffer(mbi.RegionSize);
-        SIZE_T bytes_read = 0;
+      std::vector<std::uint8_t> buffer(mbi.RegionSize);
 
-        if (ReadProcessMemory(GetCurrentProcess(), mbi.BaseAddress, buffer.data(), mbi.RegionSize, &bytes_read) &&
-            bytes_read > 0) {
+      SIZE_T bytes_read = 0;
+      if (!ReadProcessMemory(GetCurrentProcess(), mbi.BaseAddress, buffer.data(), mbi.RegionSize, &bytes_read) ||
+          bytes_read == 0)
+        continue;
 
-          if (match_pattern(buffer, imgui_pattern)) {
-            const std::string region_info = std::format("Base={}, Size={:#x}", mbi.BaseAddress, mbi.RegionSize);
-            loader::append_report(message_id::imgui_region, "IMGUI", region_info, nullptr, 0);
-            utils::submit_screenshot_report("IMGUI");
-            return;
-          }
-        }
-      }
+
+      if (!match_pattern(buffer, imgui_pattern))
+        continue;
+
+      const std::string region_info = std::format("Base={}, Size={:#x}", mbi.BaseAddress, mbi.RegionSize);
+
+      loader::append_report(message_id::imgui_region, "IMGUI", region_info, nullptr, 0);
+      utils::submit_screenshot_report("IMGUI");
+      return;
     }
   }
 
@@ -77,35 +81,30 @@ namespace detections {
     SYSTEM_INFO si{};
     GetSystemInfo(&si);
 
-    const auto* addr = static_cast<std::uint8_t*>(si.lpMinimumApplicationAddress);
-    const auto* max_addr = static_cast<std::uint8_t*>(si.lpMaximumApplicationAddress);
-
-    while (addr < max_addr) {
-      MEMORY_BASIC_INFORMATION mbi{};
+    MEMORY_BASIC_INFORMATION mbi{};
+    for (const void* addr = si.lpMinimumApplicationAddress; addr < si.lpMaximumApplicationAddress;
+         addr = static_cast<std::uint8_t*>(mbi.BaseAddress) + mbi.RegionSize) {
       if (!VirtualQueryEx(hprocess, addr, &mbi, sizeof(mbi)))
         break;
 
-      if (mbi.State == MEM_COMMIT && mbi.Protect == PAGE_EXECUTE_READWRITE) {
-        std::vector<std::uint8_t> buffer(mbi.RegionSize);
-        SIZE_T bytes_read = 0;
+      if (mbi.State != MEM_COMMIT || mbi.Protect != PAGE_EXECUTE_READWRITE)
+        continue;
 
-        if (ReadProcessMemory(hprocess, mbi.BaseAddress, buffer.data(), mbi.RegionSize, &bytes_read) &&
-            bytes_read > 0) {
+      std::vector<std::uint8_t> buffer(mbi.RegionSize);
 
-          if (match_pattern(buffer, xml_manifest_pattern)) {
-            std::string region_info =
-                    std::format("Base={:}+Size={:#x} in '{}'", mbi.BaseAddress, mbi.RegionSize, process.path);
+      SIZE_T bytes_read = 0;
+      if (!ReadProcessMemory(hprocess, mbi.BaseAddress, buffer.data(), mbi.RegionSize, &bytes_read) || bytes_read == 0)
+        continue;
 
-            loader::append_report(message_id::manifest2, "MANIFEST2", region_info, nullptr, 0);
-            utils::submit_screenshot_report("MANIFEST2");
+      if (!match_pattern(buffer, xml_manifest_pattern))
+        continue;
 
-            CloseHandle(hprocess);
-            return;
-          }
-        }
-      }
+      const std::string region_info =
+              std::format("Base={:}+Size={:#x} in '{}'", mbi.BaseAddress, mbi.RegionSize, process.path);
 
-      addr = static_cast<std::uint8_t*>(mbi.BaseAddress) + mbi.RegionSize;
+      loader::append_report(message_id::manifest2, "MANIFEST2", region_info, nullptr, 0);
+      utils::submit_screenshot_report("MANIFEST2");
+      return;
     }
   }
 } // namespace detections
